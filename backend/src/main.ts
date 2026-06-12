@@ -33,7 +33,7 @@ async function bootstrap() {
   );
 
   // Health check endpoint (available in all environments)
-  app.use('/health', (req, res) => {
+  app.use('/health', (req: any, res: any) => {
     res.status(200).json({
       status: 'ok',
       timestamp: new Date().toISOString(),

@@ -17,7 +17,7 @@ export class AdminService {
     ] = await Promise.all([
       this.prisma.user.count({ where: { role: { in: [Role.CLIENT, Role.PROVIDER] } } }),
       this.prisma.provider.count(),
-      this.prisma.provider.count({ where: { isActive: true } }),
+      this.prisma.provider.count({ where: { isVerified: true } }),
       this.prisma.booking.count(),
       this.prisma.payment.aggregate({
         where: { status: 'COMPLETED' },
@@ -103,9 +103,13 @@ export class AdminService {
       throw new NotFoundException('Provider not found');
     }
 
-    return this.prisma.provider.update({
-      where: { id: providerId },
+    await this.prisma.user.update({
+      where: { id: provider.userId },
       data: { isActive: false },
+    });
+
+    return this.prisma.provider.findUnique({
+      where: { id: providerId },
     });
   }
 

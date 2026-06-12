@@ -25,13 +25,6 @@ enum BookingStatus {
   CANCELLED
 }
 
-enum EscrowMilestone {
-  DEPOSIT
-  START
-  HALFWAY
-  COMPLETION
-}
-
 enum PaymentMethod {
   MOMO
   ORANGE

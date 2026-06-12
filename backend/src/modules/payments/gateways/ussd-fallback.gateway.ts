@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { IPaymentGateway, InitiateResult, VerifyResult, WebhookResult, RefundResult, PaymentMetadata } from '../../common/interfaces/payment-gateway.interface';
+import { IPaymentGateway, InitiateResult, VerifyResult, WebhookResult, RefundResult, PaymentMetadata } from '../../../common/interfaces/payment-gateway.interface';
 
 @Injectable()
 export class UssdFallbackGateway implements IPaymentGateway {
