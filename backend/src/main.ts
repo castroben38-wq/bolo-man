@@ -91,5 +91,5 @@ async function bootstrap() {
 bootstrap().catch((err) => {
   // eslint-disable-next-line no-console
   console.error('BOOTSTRAP_FAILED:', err);
-  process.exit(1);
+  setTimeout(() => process.exit(1), 2000);
 });
