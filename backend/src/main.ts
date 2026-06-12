@@ -5,7 +5,18 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 
+process.on('unhandledRejection', (reason) => {
+  // eslint-disable-next-line no-console
+  console.error('UNHANDLED_REJECTION:', reason);
+});
+process.on('uncaughtException', (err) => {
+  // eslint-disable-next-line no-console
+  console.error('UNCAUGHT_EXCEPTION:', err);
+});
+
 async function bootstrap() {
+  // eslint-disable-next-line no-console
+  console.log('Bootstrap starting... PORT=' + process.env.PORT);
   const app = await NestFactory.create(AppModule);
   const logger = new Logger('Bootstrap');
 
@@ -77,4 +88,8 @@ async function bootstrap() {
   }
 }
 
-bootstrap();
+bootstrap().catch((err) => {
+  // eslint-disable-next-line no-console
+  console.error('BOOTSTRAP_FAILED:', err);
+  process.exit(1);
+});
