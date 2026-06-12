@@ -3,20 +3,21 @@ import { ValidationPipe, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
-import { AppModule } from './app.module';
+
+process.stderr.write('MAIN_LOADED PORT=' + process.env.PORT + '\n');
 
 process.on('unhandledRejection', (reason) => {
-  // eslint-disable-next-line no-console
-  console.error('UNHANDLED_REJECTION:', reason);
+  process.stderr.write('UNHANDLED_REJECTION: ' + String(reason) + '\n');
 });
 process.on('uncaughtException', (err) => {
-  // eslint-disable-next-line no-console
-  console.error('UNCAUGHT_EXCEPTION:', err);
+  process.stderr.write('UNCAUGHT_EXCEPTION: ' + (err?.stack || String(err)) + '\n');
 });
 
 async function bootstrap() {
-  // eslint-disable-next-line no-console
-  console.log('Bootstrap starting... PORT=' + process.env.PORT);
+  process.stderr.write('Bootstrap starting...\n');
+  // Lazy-require so any module-load error is caught and logged below
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { AppModule } = require('./app.module');
   const app = await NestFactory.create(AppModule);
   const logger = new Logger('Bootstrap');
 
@@ -89,7 +90,6 @@ async function bootstrap() {
 }
 
 bootstrap().catch((err) => {
-  // eslint-disable-next-line no-console
-  console.error('BOOTSTRAP_FAILED:', err);
+  process.stderr.write('BOOTSTRAP_FAILED: ' + (err?.stack || String(err)) + '\n');
   setTimeout(() => process.exit(1), 2000);
 });
