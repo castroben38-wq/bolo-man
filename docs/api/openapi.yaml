@@ -1,0 +1,565 @@
+openapi: 3.0.0
+info:
+  title: Bolo-Man API
+  description: Cameroon-focused Daily Services Platform API
+  version: '1.0'
+  contact:
+    name: Bolo-Man Support
+    email: support@boloman.cm
+
+servers:
+  - url: https://api.boloman.cm
+    description: Production
+  - url: http://localhost:3000
+    description: Development
+
+security:
+  - bearerAuth: []
+
+paths:
+  /auth/register:
+    post:
+      tags: [auth]
+      summary: Register a new user
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string, example: 'Jean Dupont' }
+                email: { type: string, example: 'jean@example.cm' }
+                phone: { type: string, example: '+237670000001' }
+                password: { type: string, example: 'SecurePass123!' }
+                role: { type: string, enum: [CLIENT, PROVIDER], default: CLIENT }
+                language: { type: string, default: 'fr' }
+                countryCode: { type: string, default: 'CM' }
+      responses:
+        201:
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user: { $ref: '#/components/schemas/User' }
+                  accessToken: { type: string }
+                  refreshToken: { type: string }
+
+  /auth/login:
+    post:
+      tags: [auth]
+      summary: Login with email/phone and password
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                identifier: { type: string, description: 'Email or phone' }
+                password: { type: string }
+      responses:
+        200:
+          description: Login successful
+
+  /auth/refresh:
+    post:
+      tags: [auth]
+      summary: Refresh access token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refreshToken: { type: string }
+      responses:
+        200:
+          description: New tokens generated
+
+  /auth/otp/request:
+    post:
+      tags: [auth]
+      summary: Request OTP
+      security: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phone: { type: string }
+      responses:
+        200:
+          description: OTP sent
+
+  /auth/otp/verify:
+    post:
+      tags: [auth]
+      summary: Verify OTP
+      security: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phone: { type: string }
+                otp: { type: string, length: 6 }
+
+  /clients/profile:
+    get:
+      tags: [clients]
+      summary: Get client profile
+      responses:
+        200:
+          description: Profile retrieved
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/User' }
+
+    put:
+      tags: [clients]
+      summary: Update client profile
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                avatar: { type: string }
+                language: { type: string }
+
+  /providers:
+    get:
+      tags: [providers]
+      summary: Search/list providers
+      parameters:
+        - name: q
+          in: query
+          schema: { type: string }
+        - name: categoryId
+          in: query
+          schema: { type: string }
+        - name: city
+          in: query
+          schema: { type: string }
+        - name: minRating
+          in: query
+          schema: { type: number }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 10 }
+      responses:
+        200:
+          description: List of providers
+
+  /providers/profile:
+    get:
+      tags: [providers]
+      summary: Get provider profile (for logged-in provider)
+      responses:
+        200:
+          description: Provider profile
+
+    put:
+      tags: [providers]
+      summary: Update provider profile
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                businessName: { type: string }
+                description: { type: string }
+                categories: { type: array, items: { type: string } }
+                availability: { type: object }
+                maxDistanceKm: { type: number }
+
+  /providers/availability:
+    get:
+      tags: [providers]
+      summary: Get provider availability
+      responses:
+        200:
+          description: Availability schedule
+
+    put:
+      tags: [providers]
+      summary: Update availability
+
+  /categories:
+    get:
+      tags: [services]
+      summary: List service categories
+      security: []
+      responses:
+        200:
+          description: List of categories
+
+  /services:
+    get:
+      tags: [services]
+      summary: List services
+      parameters:
+        - name: categoryId
+          in: query
+          schema: { type: string }
+      responses:
+        200:
+          description: List of services
+
+  /providers/{providerId}/services:
+    get:
+      tags: [services]
+      summary: Get services by provider
+      parameters:
+        - name: providerId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: Provider services
+
+  /bookings:
+    post:
+      tags: [bookings]
+      summary: Create a booking
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                serviceId: { type: string, required: true }
+                providerId: { type: string, required: true }
+                scheduledAt: { type: string, format: date-time }
+                durationMinutes: { type: integer }
+                locationLat: { type: number }
+                locationLng: { type: number }
+                locationAddress: { type: string }
+                notes: { type: string }
+
+    get:
+      tags: [bookings]
+      summary: List bookings
+      parameters:
+        - name: status
+          in: query
+          schema: { type: string, enum: [REQUESTED, ACCEPTED, EN_ROUTE, ON_SITE, COMPLETED, CANCELLED] }
+      responses:
+        200:
+          description: List of bookings
+
+  /bookings/{id}:
+    get:
+      tags: [bookings]
+      summary: Get booking details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+
+    patch:
+      tags: [bookings]
+      summary: Update booking status
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status: { type: string, enum: [REQUESTED, ACCEPTED, EN_ROUTE, ON_SITE, COMPLETED, CANCELLED] }
+                cancelReason: { type: string }
+
+  /payments:
+    post:
+      tags: [payments]
+      summary: Initiate a payment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bookingId: { type: string }
+                amount: { type: integer, minimum: 100 }
+                currency: { type: string, default: 'XAF' }
+                method: { type: string, enum: [MOMO, ORANGE, CARD, COD, WALLET] }
+
+    get:
+      tags: [payments]
+      summary: Get payment history
+      responses:
+        200:
+          description: Payment history
+
+  /payments/verify/{transactionRef}:
+    get:
+      tags: [payments]
+      summary: Verify a payment
+
+  /payments/webhooks/momo:
+    post:
+      tags: [payments]
+      summary: MoMo webhook
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+
+  /contacts/{providerId}:
+    get:
+      tags: [contacts]
+      summary: Get provider contact (gated by subscription)
+      parameters:
+        - name: providerId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: Contact info
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access: { type: boolean }
+                  method: { type: string }
+                  contacts:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        phone: { type: string }
+                        whatsapp: { type: string }
+                        address: { type: string }
+        403:
+          description: Subscription required - upgrade options returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  code: { type: string }
+                  options:
+                    type: object
+                    properties:
+                      subscription: { type: object }
+                      microPayment: { type: object }
+
+  /contacts/{providerId}/unlock:
+    post:
+      tags: [contacts]
+      summary: Unlock contact with micro-payment (500 XAF for 48h)
+      parameters:
+        - name: providerId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        201:
+          description: Contact unlocked
+
+  /subscriptions:
+    get:
+      tags: [subscriptions]
+      summary: List subscription plans
+      security: []
+      parameters:
+        - name: countryCode
+          in: query
+          schema: { type: string, default: 'CM' }
+      responses:
+        200:
+          description: List of plans
+
+    post:
+      tags: [subscriptions]
+      summary: Subscribe to a plan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                subscriptionId: { type: string }
+                paymentMethod: { type: string }
+
+    put:
+      tags: [subscriptions]
+      summary: Upgrade/downgrade subscription
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                subscriptionId: { type: string }
+
+    delete:
+      tags: [subscriptions]
+      summary: Cancel subscription
+
+  /subscriptions/usage:
+    get:
+      tags: [subscriptions]
+      summary: View current subscription usage
+      responses:
+        200:
+          description: Usage details
+
+  /conversations:
+    get:
+      tags: [messaging]
+      summary: List conversations
+      responses:
+        200:
+          description: Conversations
+
+  /conversations/{id}/messages:
+    get:
+      tags: [messaging]
+      summary: Get messages
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+    post:
+      tags: [messaging]
+      summary: Send message
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content: { type: string }
+
+  /reviews:
+    post:
+      tags: [reviews]
+      summary: Create a review
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bookingId: { type: string }
+                rating: { type: integer, minimum: 1, maximum: 5 }
+                comment: { type: string }
+
+  /reviews/provider/{providerId}:
+    get:
+      tags: [reviews]
+      summary: Get provider reviews
+      parameters:
+        - name: providerId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: Reviews list
+
+  /reviews/{id}/response:
+    put:
+      tags: [reviews]
+      summary: Respond to review
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                response: { type: string }
+
+  /admin/dashboard:
+    get:
+      tags: [admin]
+      summary: Admin dashboard stats
+
+  /admin/users:
+    get:
+      tags: [admin]
+      summary: List users
+
+  /admin/providers:
+    get:
+      tags: [admin]
+      summary: List providers
+
+  /admin/bookings:
+    get:
+      tags: [admin]
+      summary: List all bookings
+
+  /admin/payments:
+    get:
+      tags: [admin]
+      summary: List all payments
+
+  /admin/settings:
+    get:
+      tags: [admin]
+      summary: Get settings
+    put:
+      tags: [admin]
+      summary: Update settings
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        email: { type: string }
+        phone: { type: string }
+        role: { type: string, enum: [CLIENT, PROVIDER, ADMIN] }
+        language: { type: string }
+        currency: { type: string }
+        countryCode: { type: string }
+        avatar: { type: string }
+        isVerified: { type: boolean }
+        createdAt: { type: string, format: date-time }

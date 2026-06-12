@@ -1,0 +1,26 @@
+{
+  "name": "bolo-man",
+  "version": "1.0.0",
+  "description": "Bolo-Man - Cameroon-focused Daily Services Platform",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "admin"
+  ],
+  "scripts": {
+    "dev:backend": "cd backend && npm run start:dev",
+    "dev:admin": "cd admin && npm run dev",
+    "build:backend": "cd backend && npm run build",
+    "build:admin": "cd admin && npm run build",
+    "test:backend": "cd backend && npm run test",
+    "lint": "cd backend && npm run lint",
+    "docker:up": "docker-compose -f infrastructure/docker-compose.yml up -d",
+    "docker:down": "docker-compose -f infrastructure/docker-compose.yml down",
+    "db:migrate": "cd backend && npx prisma migrate dev",
+    "db:seed": "cd backend && npx prisma db seed",
+    "db:push": "cd backend && npx prisma db push"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

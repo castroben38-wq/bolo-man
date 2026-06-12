@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bolo-Man Security & Payment Preview</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1a1a2e;
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .header h1 {
+      color: #4CAF50;
+      font-size: 2.5rem;
+      margin-bottom: 8px;
+    }
+    .header p {
+      color: #888;
+      font-size: 1rem;
+    }
+    .security-badge {
+      display: inline-block;
+      background: #e94560;
+      color: white;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-top: 12px;
+    }
+    .screens-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 40px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    .screen-card {
+      background: #16213e;
+      border-radius: 24px;
+      padding: 20px;
+      border: 1px solid #0f3460;
+    }
+    .screen-label {
+      color: #e94560;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+    .phone-frame {
+      width: 280px;
+      height: 560px;
+      background: #000;
+      border-radius: 32px;
+      margin: 0 auto;
+      padding: 12px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      position: relative;
+    }
+    .phone-notch {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 120px;
+      height: 24px;
+      background: #000;
+      border-radius: 0 0 16px 16px;
+      z-index: 10;
+    }
+    .phone-screen {
+      width: 100%;
+      height: 100%;
+      background: #F5F5F5;
+      border-radius: 24px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* ── PIN PAD ── */
+    .pin-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+      height: 100%;
+    }
+    .pin-avatar {
+      width: 56px; height: 56px;
+      background: linear-gradient(135deg, #2E7D32, #4CAF50);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-size: 24px; font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .pin-label { font-size: 12px; color: #757575; }
+    .pin-provider { font-size: 15px; font-weight: 700; color: #212121; margin-bottom: 8px; }
+    .pin-amount { font-size: 28px; font-weight: 700; color: #2E7D32; margin-bottom: 24px; }
+    .pin-dots { display: flex; gap: 16px; margin-bottom: 32px; }
+    .pin-dot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid #E0E0E0; }
+    .pin-dot.filled { background: #2E7D32; border-color: #2E7D32; }
+    .pin-keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; width: 100%; }
+    .pin-key {
+      height: 52px;
+      background: white;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; font-weight: 600; color: #212121;
+      border: 1px solid #E0E0E0;
+    }
+    .pin-key.empty { background: transparent; border: none; }
+
+    /* ── OTP ── */
+    .otp-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 48px 24px;
+      height: 100%;
+    }
+    .otp-icon { font-size: 40px; margin-bottom: 16px; }
+    .otp-title { font-size: 18px; font-weight: 700; color: #212121; margin-bottom: 4px; }
+    .otp-hint { font-size: 12px; color: #757575; text-align: center; margin-bottom: 24px; }
+    .otp-boxes { display: flex; gap: 8px; margin-bottom: 24px; }
+    .otp-box { width: 36px; height: 44px; border-radius: 8px; border: 2px solid #E0E0E0; background: white; }
+    .otp-box.filled { border-color: #2E7D32; background: #E8F5E9; }
+    .otp-timer { font-size: 12px; color: #757575; }
+
+    /* ── BIOMETRIC ── */
+    .bio-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      padding: 24px;
+    }
+    .bio-circle {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      border: 3px solid #2E7D32;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 36px;
+      margin-bottom: 20px;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.05); opacity: 0.8; }
+    }
+
+    /* ── USSD ── */
+    .ussd-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 32px 20px;
+      height: 100%;
+    }
+    .ussd-code {
+      background: #E8F5E9;
+      border: 2px solid #2E7D32;
+      padding: 14px 28px;
+      border-radius: 12px;
+      font-size: 20px;
+      font-weight: 700;
+      color: #2E7D32;
+      letter-spacing: 1px;
+      margin: 16px 0;
+    }
+    .ussd-info { align-self: stretch; margin-bottom: 16px; }
+    .ussd-info p { font-size: 13px; color: #757575; margin: 4px 0; }
+    .ussd-steps { align-self: stretch; font-size: 12px; color: #757575; line-height: 20px; margin-bottom: 16px; }
+
+    /* ── COD QR ── */
+    .cod-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 32px 20px;
+      height: 100%;
+    }
+    .qr-box {
+      width: 140px; height: 140px;
+      background: white;
+      border: 2px solid #E0E0E0;
+      border-radius: 12px;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      margin: 16px 0;
+    }
+    .qr-pattern {
+      width: 100px; height: 100px;
+      background: repeating-linear-gradient(
+        0deg, #212121 0px, #212121 4px, white 4px, white 8px
+      ),
+      repeating-linear-gradient(
+        90deg, #212121 0px, #212121 4px, white 4px, white 8px
+      );
+      background-blend-mode: multiply;
+    }
+    .cod-steps { align-self: stretch; font-size: 12px; color: #757575; line-height: 20px; margin: 12px 0; }
+
+    /* ── MILESTONE ── */
+    .milestone-screen {
+      padding: 48px 20px 20px;
+      height: 100%;
+      overflow-y: auto;
+    }
+    .milestone-card {
+      background: white;
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      border: 1px solid #EEEEEE;
+    }
+    .milestone-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .milestone-name { font-size: 14px; font-weight: 700; color: #212121; }
+    .milestone-status {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+    .status-released { background: #E8F5E9; color: #2E7D32; }
+    .status-pending { background: #FFF8E1; color: #F9A825; }
+    .milestone-bar {
+      height: 8px;
+      background: #EEEEEE;
+      border-radius: 4px;
+      margin: 8px 0;
+      overflow: hidden;
+    }
+    .milestone-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #2E7D32, #4CAF50);
+      border-radius: 4px;
+    }
+    .milestone-amount { font-size: 13px; font-weight: 700; color: #2E7D32; }
+
+    /* ── SUCCESS ── */
+    .success-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      padding: 24px;
+    }
+    .success-circle {
+      width: 72px; height: 72px;
+      background: #4CAF50;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-size: 32px; font-weight: 700;
+      margin-bottom: 20px;
+    }
+    .success-title { font-size: 20px; font-weight: 700; color: #212121; margin-bottom: 4px; }
+    .success-hint { font-size: 13px; color: #757575; text-align: center; }
+    .success-receipt {
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 20px;
+      width: 100%;
+      border: 1px solid #EEEEEE;
+    }
+    .receipt-row { display: flex; justify-content: space-between; font-size: 12px; color: #757575; padding: 4px 0; }
+    .receipt-row.total { font-weight: 700; color: #212121; border-top: 1px solid #EEEEEE; margin-top: 8px; padding-top: 8px; }
+
+    .btn {
+      width: 100%;
+      padding: 14px;
+      background: #2E7D32;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      margin-top: 16px;
+      text-align: center;
+    }
+    .btn-yellow {
+      background: #FFC107;
+      color: #212121;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Bolo-Man</h1>
+    <p>Security & Payment Assurance — Cameroon-Focused</p>
+    <div class="security-badge">🔒 7-Layer Security System</div>
+  </div>
+
+  <div class="screens-grid">
+
+    <!-- 1. PIN PAD -->
+    <div class="screen-card">
+      <div class="screen-label">Transaction PIN</div>
+      <div class="phone-frame">
+        <div class="phone-notch"></div>
+        <div class="phone-screen">
+          <div class="pin-screen">
+            <div class="pin-avatar">J</div>
+            <div class="pin-label">Paiement à</div>
+            <div class="pin-provider">Tchinda Électricité</div>
+            <div class="pin-amount">28 750 XAF</div>
+            <div class="pin-dots">
+              <div class="pin-dot filled"></div>
+              <div class="pin-dot filled"></div>
+              <div class="pin-dot"></div>
+              <div class="pin-dot"></div>
+            </div>
+            <div class="pin-keypad">
+              <div class="pin-key">1</div><div class="pin-key">2</div><div class="pin-key">3</div>
+              <div class="pin-key">4</div><div class="pin-key">5</div><div class="pin-key">6</div>
+              <div class="pin-key">7</div><div class="pin-key">8</div><div class="pin-key">9</div>
+              <div class="pin-key empty"></div><div class="pin-key">0</div><div class="pin-key">⌫</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. SMS OTP -->
+    <div class="screen-card">
+      <div class="screen-label">SMS OTP Verification</div>
+      <div class="phone-frame">
+        <div class="phone-notch"></div>
+        <div class="phone-screen">
+          <div class="otp-screen">
+            <div class="otp-icon">📱</div>
+            <div class="otp-title">Vérification SMS</div>
+            <div class="otp-hint">Un code à 6 chiffres a été envoyé à +237 67****01</div>
+            <div class="otp-boxes">
+              <div class="otp-box filled"></div>
+              <div class="otp-box filled"></div>
+              <div class="otp-box filled"></div>
+              <div class="otp-box"></div>
+              <div class="otp-box"></div>
+              <div class="otp-box"></div>
+            </div>
+            <div class="otp-timer">Renvoyer dans 2:45</div>
+            <div style="margin-top: 24px; font-size: 12px; color: #757575; text-align: center;">
+              Montant: <strong style="color: #2E7D32;">28 750 XAF</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. BIOMETRIC -->
+    <div class="screen-card">
+      <div class="screen-label">Biometric Auth</div>
+      <div class="phone-frame">
+        <div class="phone-notch"></div>
+        <div class="phone-screen">
+          <div class="bio-screen">
+            <div class="bio-circle">👆</div>
+            <div class="otp-title">Empreinte digitale</div>
+            <div class="otp-hint">Touchez le capteur pour confirmer le paiement</div>
+            <div style="margin-top: 20px; font-size: 12px; color: #757575;">
+              Paiement: <strong style="color: #2E7D32;">15 000 XAF</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. USSD FALLBACK -->
+    <div class="screen-card">
+      <div class="screen-label">USSD Fallback (No Internet)</div>
+      <div class="phone-frame">
+        <div class="phone-notch"></div>
+        <div class="phone-screen">
+          <div class="ussd-screen">
+            <div class="otp-icon">📞</div>
+            <div class="otp-title">Paiement par USSD</div>
+            <div class="otp-hint">Pas de connexion ? Composez ce code</div>
+            <div class="ussd-code">*126*1*1*28750*123456#</div>
+            <div class="ussd-info">
+              <p>💰 <strong>28 750 XAF</strong></p>
+              <p>👤 Pour: <strong>Tchinda Électricité</strong></p>
+            </div>
+            <div class="ussd-steps">
+              1. Composez ce code sur votre téléphone<br>
+              2. Suivez les instructions<br>
+              3. Entrez votre code MoMo<br>
+              4. Le paiement sera confirmé auto.
+            </div>
+            <div class="btn">J'ai composé le code</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. COD QR -->
+    <div class="screen-card">
+      <div class="screen-label">Cash on Delivery + QR</div>
+      <div class="phone-frame">
+        <div class="phone-notch"></div>
+        <div class="phone-screen">
+          <div class="cod-screen">
+            <div class="otp-icon">💵</div>
+            <div class="otp-title">Paiement en espèces</div>
+            <div class="otp-hint">Montrez ce QR au prestataire après le service</div>
+            <div class="qr-box">
+              <div class="qr-pattern"></div>
+            </div>
+            <div style="font-size: 14px; font-weight: 700; color: #2E7D32; margin-bottom: 8px;">25 000 XAF</div>
+            <div class="cod-steps">
+              1. Le prestataire termine le service<br>
+              2. Vous payez en espèces<br>
+              3. Il scanne ce QR pour confirmer<br>
+              4. La réservation est clôturée
+            </div>
+            <div class="btn">J'ai compris</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. MILESTONE ESCROW -->
+    <div class="screen-card">
+      <div class="screen-label">Milestone Escrow (25/50/25)</div>
+      <div class="phone-frame">
+        <div class="phone-notch"></div>
+        <div class="phone-screen">
+          <div class="milestone-screen">
+            <div style="font-size: 16px; font-weight: 700; color: #212121; margin-bottom: 16px;">Versements</div>
+
+            <div class="milestone-card">
+              <div class="milestone-header">
+                <span class="milestone-name">🟢 Acompte (25%)</span>
+                <span class="milestone-status status-released">VERSÉ</span>
+              </div>
+              <div class="milestone-bar"><div class="milestone-fill" style="width: 100%;"></div></div>
+              <div class="milestone-amount">7 188 XAF versés</div>
+            </div>
+
+            <div class="milestone-card">
+              <div class="milestone-header">
+                <span class="milestone-name">🟡 Début travaux (50%)</span>
+                <span class="milestone-status status-released">VERSÉ</span>
+              </div>
+              <div class="milestone-bar"><div class="milestone-fill" style="width: 100%;"></div></div>
+              <div class="milestone-amount">14 375 XAF versés</div>
+            </div>
+
+            <div class="milestone-card">
+              <div class="milestone-header">
+                <span class="milestone-name">🔴 Finalisation (25%)</span>
+                <span class="milestone-status status-pending">EN ATTENTE</span>
+              </div>
+              <div class="milestone-bar"><div class="milestone-fill" style="width: 0%;"></div></div>
+              <div class="milestone-amount">7 188 XAF en attente</div>
+              <div class="btn btn-yellow" style="margin-top: 12px;">Libérer ce versement</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 7. PAYMENT SUCCESS -->
+    <div class="screen-card">
+      <div class="screen-label">Payment Success + Receipt</div>
+      <div class="phone-frame">
+        <div class="phone-notch"></div>
+        <div class="phone-screen">
+          <div class="success-screen">
+            <div class="success-circle">✓</div>
+            <div class="success-title">Paiement réussi !</div>
+            <div class="success-hint">Votre réservation est confirmée</div>
+            <div class="success-receipt">
+              <div class="receipt-row"><span>Service</span><span>Installation électrique</span></div>
+              <div class="receipt-row"><span>Prestataire</span><span>Tchinda Électricité</span></div>
+              <div class="receipt-row"><span>Date</span><span>15 Juin 2026</span></div>
+              <div class="receipt-row"><span>Méthode</span><span>MoMo</span></div>
+              <div class="receipt-row"><span>Référence</span><span>#TXN-48291</span></div>
+              <div class="receipt-row total"><span>Total</span><span>28 750 XAF</span></div>
+            </div>
+            <div class="btn">Voir ma réservation</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 8. VOICE CALL CONFIRMATION -->
+    <div class="screen-card">
+      <div class="screen-label">Voice Call Confirmation (High Value)</div>
+      <div class="phone-frame">
+        <div class="phone-notch"></div>
+        <div class="phone-screen">
+          <div class="bio-screen">
+            <div style="width: 72px; height: 72px; background: #e94560; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; color: white; margin-bottom: 20px; animation: pulse 1.5s infinite;">📞</div>
+            <div class="otp-title">Appel de confirmation</div>
+            <div class="otp-hint">Un appel automatisé va être passé à votre numéro</div>
+            <div style="background: white; border-radius: 12px; padding: 16px; width: 100%; margin-top: 16px; border: 1px solid #EEEEEE;">
+              <div style="font-size: 13px; color: #757575; margin-bottom: 8px;">Réservation #BK-4821</div>
+              <div style="font-size: 20px; font-weight: 700; color: #e94560;">125 000 XAF</div>
+              <div style="font-size: 12px; color: #757575; margin-top: 4px;">Appuyez sur 1 pour confirmer</div>
+            </div>
+            <div class="btn" style="background: #e94560;">Passer l'appel maintenant</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="text-align: center; margin-top: 40px; color: #888; font-size: 13px;">
+    <p>Bolo-Man — 7-Layer Payment Security for Cameroon</p>
+    <p style="margin-top: 4px;">PIN + OTP + Biometric + USSD + COD-QR + Milestone Escrow + Voice Confirmation</p>
+  </div>
+</body>
+</html>

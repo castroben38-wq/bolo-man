@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bolo-Man App Preview</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1a1a2e;
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .header h1 {
+      color: #4CAF50;
+      font-size: 2.5rem;
+      margin-bottom: 8px;
+    }
+    .header p {
+      color: #888;
+      font-size: 1rem;
+    }
+    .screens-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 40px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    .screen-card {
+      background: #16213e;
+      border-radius: 24px;
+      padding: 20px;
+      border: 1px solid #0f3460;
+    }
+    .screen-label {
+      color: #e94560;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+    .phone-frame {
+      width: 280px;
+      height: 560px;
+      background: #000;
+      border-radius: 32px;
+      margin: 0 auto;
+      padding: 12px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      position: relative;
+    }
+    .phone-notch {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 120px;
+      height: 24px;
+      background: #000;
+      border-radius: 0 0 16px 16px;
+      z-index: 10;
+    }
+    .phone-screen {
+      width: 100%;
+      height: 100%;
+      background: #F5F5F5;
+      border-radius: 24px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* --- LOGIN SCREEN --- */
+    .login-screen {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 32px 24px;
+      height: 100%;
+    }
+    .login-logo {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, #2E7D32, #4CAF50);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+      box-shadow: 0 8px 24px rgba(46,125,50,0.3);
+    }
+    .login-logo span {
+      color: white;
+      font-size: 32px;
+      font-weight: bold;
+    }
+    .login-title {
+      font-size: 24px;
+      font-weight: bold;
+      color: #2E7D32;
+      margin-bottom: 4px;
+    }
+    .login-subtitle {
+      font-size: 13px;
+      color: #757575;
+      margin-bottom: 32px;
+    }
+    .input-field {
+      width: 100%;
+      padding: 14px 16px;
+      border: 1px solid #E0E0E0;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      font-size: 14px;
+      background: white;
+      color: #333;
+    }
+    .input-field::placeholder { color: #BDBDBD; }
+    .btn-primary {
+      width: 100%;
+      padding: 14px;
+      background: #2E7D32;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      margin-top: 8px;
+      cursor: pointer;
+    }
+    .btn-secondary {
+      width: 100%;
+      padding: 14px;
+      background: #FFC107;
+      color: #212121;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      margin-top: 12px;
+      cursor: pointer;
+    }
+    .login-footer {
+      margin-top: 20px;
+      font-size: 12px;
+      color: #757575;
+    }
+
+    /* --- HOME SCREEN --- */
+    .home-screen {
+      height: 100%;
+      overflow-y: auto;
+    }
+    .home-header {
+      background: linear-gradient(135deg, #2E7D32, #1B5E20);
+      padding: 48px 20px 24px;
+      color: white;
+    }
+    .home-header h2 { font-size: 20px; font-weight: 600; }
+    .home-header p { font-size: 12px; opacity: 0.8; margin-top: 2px; }
+    .search-bar {
+      margin: -16px 16px 0;
+      background: white;
+      padding: 12px 16px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #BDBDBD;
+    }
+    .section-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #212121;
+      margin: 20px 16px 12px;
+    }
+    .categories-row {
+      display: flex;
+      gap: 8px;
+      padding: 0 16px;
+      overflow-x: auto;
+    }
+    .category-chip {
+      background: #2E7D32;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .provider-card {
+      background: white;
+      margin: 8px 16px;
+      padding: 16px;
+      border-radius: 12px;
+      border: 1px solid #EEEEEE;
+    }
+    .provider-name { font-size: 15px; font-weight: 700; color: #212121; }
+    .provider-category { font-size: 12px; color: #757575; margin-top: 2px; }
+    .provider-meta {
+      display: flex;
+      gap: 16px;
+      margin-top: 8px;
+      font-size: 12px;
+      color: #757575;
+    }
+    .provider-price {
+      font-size: 15px;
+      font-weight: 700;
+      color: #2E7D32;
+      margin-top: 8px;
+    }
+    .book-btn {
+      background: #FFC107;
+      color: #212121;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      margin-top: 10px;
+      display: inline-block;
+    }
+    .badge-gold {
+      background: #FFC107;
+      color: #212121;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-left: 8px;
+    }
+
+    /* --- PROVIDER DETAIL --- */
+    .detail-screen { height: 100%; overflow-y: auto; }
+    .detail-hero {
+      background: linear-gradient(135deg, #2E7D32, #1B5E20);
+      padding: 48px 20px 32px;
+      color: white;
+      position: relative;
+    }
+    .detail-hero h2 { font-size: 22px; font-weight: 700; }
+    .detail-rating {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+      font-size: 13px;
+    }
+    .detail-body { padding: 20px; }
+    .detail-section {
+      background: white;
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      border: 1px solid #EEEEEE;
+    }
+    .detail-section h4 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #212121;
+      margin-bottom: 8px;
+    }
+    .detail-section p {
+      font-size: 13px;
+      color: #757575;
+      line-height: 1.5;
+    }
+    .service-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid #EEEEEE;
+    }
+    .service-row:last-child { border-bottom: none; }
+    .service-name { font-size: 13px; color: #212121; }
+    .service-price { font-size: 13px; font-weight: 700; color: #2E7D32; }
+    .gated-box {
+      background: linear-gradient(135deg, #FFF8E1, #FFECB3);
+      border: 1px solid #FFC107;
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 12px;
+    }
+    .gated-box h4 { color: #212121; font-size: 14px; }
+    .gated-box p { color: #757575; font-size: 12px; margin-top: 4px; }
+    .gated-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .btn-small {
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+    }
+    .btn-green { background: #2E7D32; color: white; }
+    .btn-yellow { background: #FFC107; color: #212121; }
+
+    /* --- BOOKING FLOW --- */
+    .booking-screen { height: 100%; overflow-y: auto; padding: 48px 20px 20px; }
+    .booking-step {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      border: 1px solid #EEEEEE;
+    }
+    .step-number {
+      width: 28px;
+      height: 28px;
+      background: #2E7D32;
+      color: white;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      margin-right: 10px;
+    }
+    .booking-step h4 {
+      display: inline;
+      font-size: 14px;
+      font-weight: 700;
+      color: #212121;
+    }
+    .time-slots {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .time-slot {
+      padding: 10px;
+      border: 1px solid #E0E0E0;
+      border-radius: 8px;
+      text-align: center;
+      font-size: 12px;
+      color: #212121;
+    }
+    .time-slot.active {
+      background: #2E7D32;
+      color: white;
+      border-color: #2E7D32;
+    }
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      font-size: 13px;
+      color: #757575;
+    }
+    .summary-row.total {
+      font-weight: 700;
+      color: #212121;
+      border-top: 1px solid #EEEEEE;
+      margin-top: 8px;
+      padding-top: 12px;
+    }
+    .payment-methods {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .payment-method {
+      flex: 1;
+      padding: 12px;
+      border: 2px solid #E0E0E0;
+      border-radius: 10px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: #757575;
+    }
+    .payment-method.active {
+      border-color: #2E7D32;
+      color: #2E7D32;
+      background: #E8F5E9;
+    }
+
+    /* --- PROVIDER DASHBOARD --- */
+    .dash-screen { height: 100%; overflow-y: auto; }
+    .dash-header {
+      background: linear-gradient(135deg, #2E7D32, #1B5E20);
+      padding: 48px 20px 24px;
+      color: white;
+    }
+    .dash-header h2 { font-size: 20px; font-weight: 600; }
+    .stats-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      padding: 16px;
+      margin-top: -20px;
+    }
+    .stat-card {
+      background: white;
+      padding: 16px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+      text-align: center;
+    }
+    .stat-number {
+      font-size: 22px;
+      font-weight: 700;
+      color: #2E7D32;
+    }
+    .stat-label {
+      font-size: 11px;
+      color: #757575;
+      margin-top: 4px;
+    }
+    .action-card {
+      background: white;
+      margin: 8px 16px;
+      padding: 16px;
+      border-radius: 12px;
+      border: 1px solid #EEEEEE;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .action-icon {
+      width: 44px;
+      height: 44px;
+      background: #E8F5E9;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+    .action-title { font-size: 14px; font-weight: 700; color: #212121; }
+    .action-subtitle { font-size: 12px; color: #757575; }
+
+    /* --- SUBSCRIPTIONS --- */
+    .sub-screen { height: 100%; overflow-y: auto; padding: 48px 16px 20px; }
+    .plan-card {
+      background: white;
+      padding: 20px;
+      border-radius: 16px;
+      margin-bottom: 12px;
+      border: 2px solid #EEEEEE;
+      position: relative;
+    }
+    .plan-card.featured {
+      border-color: #FFC107;
+      background: linear-gradient(135deg, #FFF8E1, #FFFFFF);
+    }
+    .plan-badge {
+      position: absolute;
+      top: -1px;
+      right: 20px;
+      background: #FFC107;
+      color: #212121;
+      padding: 4px 12px;
+      border-radius: 0 0 8px 8px;
+      font-size: 10px;
+      font-weight: 700;
+    }
+    .plan-name { font-size: 18px; font-weight: 700; color: #212121; }
+    .plan-price {
+      font-size: 28px;
+      font-weight: 700;
+      color: #2E7D32;
+      margin: 8px 0;
+    }
+    .plan-price span { font-size: 14px; color: #757575; font-weight: 400; }
+    .plan-features { list-style: none; margin-top: 12px; }
+    .plan-features li {
+      font-size: 13px;
+      color: #757575;
+      padding: 4px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .plan-features li::before {
+      content: "✓";
+      color: #4CAF50;
+      font-weight: 700;
+    }
+
+    /* --- ADMIN DASHBOARD --- */
+    .admin-screen { height: 100%; overflow-y: auto; background: #f3f4f6; }
+    .admin-header {
+      background: #1B5E20;
+      padding: 20px;
+      color: white;
+    }
+    .admin-header h2 { font-size: 18px; font-weight: 600; }
+    .admin-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      padding: 16px;
+    }
+    .admin-stat {
+      background: white;
+      padding: 16px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .admin-stat-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 8px;
+      font-size: 16px;
+    }
+    .admin-stat-value { font-size: 20px; font-weight: 700; color: #111; }
+    .admin-stat-label { font-size: 12px; color: #6b7280; }
+    .admin-section {
+      background: white;
+      margin: 0 16px 12px;
+      padding: 16px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .admin-section h4 { font-size: 14px; font-weight: 700; color: #111; margin-bottom: 12px; }
+    .admin-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid #f3f4f6;
+      font-size: 13px;
+    }
+    .admin-row:last-child { border-bottom: none; }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 6px;
+    }
+    .status-green { background: #4CAF50; }
+    .status-yellow { background: #FFC107; }
+    .status-red { background: #F44336; }
+
+    /* Bottom nav for mobile screens */
+    .bottom-nav {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 56px;
+      background: white;
+      border-top: 1px solid #EEEEEE;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      font-size: 10px;
+      color: #757575;
+    }
+    .bottom-nav .nav-item.active { color: #2E7D32; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Bolo-Man</h1>
+    <p>Cameroon-Focused Daily Services Platform — Interactive Screen Preview</p>
+  </div>
+
+  <div class="screens-grid">
+
+    <!-- LOGIN SCREEN -->
+    <div class="screen-card">
+      <div class="screen-label">Login Screen</div>
+      <div class="phone-frame">
+        <div class="phone-notch"></div>
+        <div class="phone-screen">
+          <div class="login-screen">
+            <div class="login-logo"><span>B</span></div>
+            <div class="login-title">Bolo-Man</div>
+            <div class="login-subtitle">Connexion / Login</div>
+            <input class="input-field" placeholder="+237 6XX XXX XXX" value="+237 670 000 001">
+            <input class="input-field" placeholder="Mot de passe" type="password" value="••••••••">
+            <button class="btn-primary">Se connecter</button>
+            <button class="btn-secondary">S'inscrire</button>
+            <div class="login-footer">Mot de passe oublié?</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CLIENT HOME -->
+    <div class="screen-card">
+      <div class="screen-label">Client Home</div>
+      <div class="phone-frame">
+        <div class="phone-notch"></div>
+        <div class="phone-screen">
+          <div class="home-screen">
+            <div class="home-header">
+              <h2>Bienvenue, Alice</h2>
+              <p>Trouvez un service près de vous</p>
+            </div>
+            <div class="search-bar">🔍 Rechercher des services...</div>
+            <div class="section-title">Catégories</div>
+            <div class="categories-row">
+              <div class="category-chip">Électricien</div>
+              <div class="category-chip">Plombier</div>
+              <div class="category-chip">Nettoyage</div>
+              <div class="category-chip">Mécanicien</div>
+              <div class="category-chip">Peintre</div>
+            </div>
+            <div class="section-title">Près de vous</div>
+            <div class="provider-card">
+              <div class="provider-name">Tchinda Électricité <span class="badge-gold">GOLD</span></div>
+              <div class="provider-category">Électricien — Douala, Akwa</div>
+              <div class="provider-meta">
+                <span>⭐ 4.7</span>
+                <span>📍 2.5 km</span>
+                <span>✅ Vérifié</span>
+              </div>
+              <div class="provider-price">25 000 XAF</div>
+              <div class="book-btn">Réserver</div>
+            </div>
+            <div class="provider-card">
+              <div class="provider-name">Njoya Plomberie</div>
+              <div class="provider-category">Plombier — Yaoundé, Bastos</div>
+              <div class="provider-meta">
+                <span>⭐ 4.5</span>
+                <span>📍 5.0 km</span>
+                <span>✅ Vérifié</span>
+              </div>
+              <div class="provider-price">8 000 XAF</div>
+              <div class="book-btn">Réserver</div>
+            </div>
+            <div style="height: 60px;"></div>
+          </div>
+          <div class="bottom-nav">
+            <div class="nav-item active">🏠 Accueil</div>
+            <div class="nav-item">📅 Réserv.</div>
+            <div class="nav-item">💬 Messages</div>
+            <div class="nav-item">👤 Profil</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROVIDER DETAIL (GATED CONTACT) -->
+    <div class="screen-card">
+      <div class="screen-label">Provider Detail + Gated Contact</div>
+      <div class="phone-frame">
+        <div class="phone-notch"></div>
+        <div class="phone-screen">
+          <div class="detail-screen">
+            <div class="detail-hero">
+              <h2>Tchinda Électricité</h2>
+              <div class="detail-rating">
+                <span>⭐ 4.7</span>
+                <span>• 23 avis</span>
+                <span>• Douala, Akwa</span>
+              </div>
+            </div>
+            <div class="detail-body">
+              <div class="detail-section">
+                <h4>À propos</h4>
+                <p>Expert en installations électriques résidentielles et commerciales à Douala. Plus de 10 ans d'expérience.</p>
+              </div>
+              <div class="detail-section">
+                <h4>Services</h4>
+                <div class="service-row">
+                  <span class="service-name">Installation électrique complète</span>
+                  <span class="service-price">25 000 XAF</span>
+                </div>
+                <div class="service-row">
+                  <span class="service-name">Dépannage électrique urgent</span>
+                  <span class="service-price">5 000 XAF/h</span>
+                </div>
+              </div>
+              <div class="gated-box">
+                <h4>🔒 Contact verrouillé</h4>
+                <p>Le numéro de téléphone et l'adresse sont réservés aux abonnés Gold/Premium.</p>
+                <div class="gated-actions">
+                  <button class="btn-small btn-green">Passer à Gold</button>
+                  <button class="btn-small btn-yellow">Débloquer 500 XAF</button>
+                </div>
+              </div>
+              <div style="height: 20px;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOOKING FLOW -->
+    <div class="screen-card">
+      <div class="screen-label">Booking + Payment Flow</div>
+      <div class="phone-frame">
+        <div class="phone-notch"></div>
+        <div class="phone-screen">
+          <div class="booking-screen">
+            <h2 style="font-size: 18px; font-weight: 700; color: #212121; margin-bottom: 16px;">Nouvelle réservation</h2>
+
+            <div class="booking-step">
+              <span class="step-number">1</span>
+              <h4>Service</h4>
+              <p style="font-size: 13px; color: #757575; margin-top: 8px;">Installation électrique complète — Tchinda Électricité</p>
+            </div>
+
+            <div class="booking-step">
+              <span class="step-number">2</span>
+              <h4>Date & Heure</h4>
+              <div class="time-slots">
+                <div class="time-slot">Lun 14</div>
+                <div class="time-slot active">Mar 15</div>
+                <div class="time-slot">Mer 16</div>
+              </div>
+              <div class="time-slots" style="margin-top: 8px;">
+                <div class="time-slot">08:00</div>
+                <div class="time-slot active">10:00</div>
+                <div class="time-slot">14:00</div>
+              </div>
+            </div>
+
+            <div class="booking-step">
+              <span class="step-number">3</span>
+              <h4>Récapitulatif</h4>
+              <div class="summary-row"><span>Service</span><span>25 000 XAF</span></div>
+              <div class="summary-row"><span>Frais plateforme</span><span>3 750 XAF</span></div>
+              <div class="summary-row total"><span>Total</span><span>28 750 XAF</span></div>
+            </div>
+
+            <div class="booking-step">
+              <span class="step-number">4</span>
+              <h4>Paiement</h4>
+              <div class="payment-methods">
+                <div class="payment-method active">MoMo</div>
+                <div class="payment-method">Orange</div>
+                <div class="payment-method">Carte</div>
+              </div>
+            </div>
+
+            <button class="btn-primary" style="margin-top: 8px;">Confirmer & Payer</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROVIDER DASHBOARD -->
+    <div class="screen-card">
+      <div class="screen-label">Provider Dashboard</div>
+      <div class="phone-frame">
+        <div class="phone-notch"></div>
+        <div class="phone-screen">
+          <div class="dash-screen">
+            <div class="dash-header">
+              <h2>Bonjour, Jean</h2>
+              <p style="font-size: 12px; opacity: 0.8; margin-top: 2px;">Tchinda Électricité</p>
+            </div>
+            <div class="stats-row">
+              <div class="stat-card">
+                <div class="stat-number">5</div>
+                <div class="stat-label">Réservations aujourd'hui</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-number">125K</div>
+                <div class="stat-label">XAF Gagnés</div>
+              </div>
+            </div>
+            <div class="section-title" style="margin: 16px;">Actions rapides</div>
+            <div class="action-card">
+              <div class="action-icon">📅</div>
+              <div>
+                <div class="action-title">Gérer disponibilité</div>
+                <div class="action-subtitle">Définir vos horaires de travail</div>
+              </div>
+            </div>
+            <div class="action-card">
+              <div class="action-icon">🔧</div>
+              <div>
+                <div class="action-title">Vos services</div>
+                <div class="action-subtitle">Ajouter ou modifier</div>
+              </div>
+            </div>
+            <div class="action-card">
+              <div class="action-icon">💰</div>
+              <div>
+                <div class="action-title">Gains & Retraits</div>
+                <div class="action-subtitle">Voir solde et retirer</div>
+              </div>
+            </div>
+            <div style="height: 60px;"></div>
+          </div>
+          <div class="bottom-nav">
+            <div class="nav-item active">🏠 Dashboard</div>
+            <div class="nav-item">📅 Réserv.</div>
+            <div class="nav-item">🔧 Services</div>
+            <div class="nav-item">👤 Profil</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SUBSCRIPTIONS -->
+    <div class="screen-card">
+      <div class="screen-label">Subscription Plans</div>
+      <div class="phone-frame">
+        <div class="phone-notch"></div>
+        <div class="phone-screen">
+          <div class="sub-screen">
+            <h2 style="font-size: 18px; font-weight: 700; color: #212121; margin-bottom: 16px;">Forfaits</h2>
+
+            <div class="plan-card">
+              <div class="plan-name">Classic</div>
+              <div class="plan-price">2 000 <span>XAF/mois</span></div>
+              <ul class="plan-features">
+                <li>5 favoris</li>
+                <li>2 réservations simultanées</li>
+                <li>Support standard</li>
+                <li style="color: #BDBDBD; text-decoration: line-through;">Accès aux contacts</li>
+              </ul>
+              <button class="btn-primary" style="margin-top: 12px; background: #757575;">Sélectionner</button>
+            </div>
+
+            <div class="plan-card featured">
+              <div class="plan-badge">POPULAIRE</div>
+              <div class="plan-name">Gold</div>
+              <div class="plan-price">5 000 <span>XAF/mois</span></div>
+              <ul class="plan-features">
+                <li>20 favoris</li>
+                <li>5 réservations simultanées</li>
+                <li>Accès aux contacts</li>
+                <li>Support prioritaire</li>
+              </ul>
+              <button class="btn-primary" style="margin-top: 12px;">Sélectionner</button>
+            </div>
+
+            <div class="plan-card">
+              <div class="plan-name">Premium</div>
+              <div class="plan-price">10 000 <span>XAF/mois</span></div>
+              <ul class="plan-features">
+                <li>Favoris illimités</li>
+                <li>Réservations illimitées</li>
+                <li>Accès aux contacts</li>
+                <li>Support VIP 24/7</li>
+                <li>Analyses avancées</li>
+              </ul>
+              <button class="btn-primary" style="margin-top: 12px; background: #1B5E20;">Sélectionner</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADMIN DASHBOARD -->
+    <div class="screen-card">
+      <div class="screen-label">Admin Dashboard (Web)</div>
+      <div class="phone-frame" style="width: 320px; height: 520px;">
+        <div class="phone-notch"></div>
+        <div class="phone-screen">
+          <div class="admin-screen">
+            <div class="admin-header">
+              <h2>Bolo-Man Admin</h2>
+              <p style="font-size: 11px; opacity: 0.7; margin-top: 2px;">Tableau de bord</p>
+            </div>
+            <div class="admin-stats">
+              <div class="admin-stat">
+                <div class="admin-stat-icon" style="background: #DBEAFE;">👥</div>
+                <div class="admin-stat-value">1,240</div>
+                <div class="admin-stat-label">Utilisateurs</div>
+              </div>
+              <div class="admin-stat">
+                <div class="admin-stat-icon" style="background: #D1FAE5;">💰</div>
+                <div class="admin-stat-value">3.45M</div>
+                <div class="admin-stat-label">Revenus (XAF)</div>
+              </div>
+              <div class="admin-stat">
+                <div class="admin-stat-icon" style="background: #FEF3C7;">📅</div>
+                <div class="admin-stat-value">856</div>
+                <div class="admin-stat-label">Réservations</div>
+              </div>
+              <div class="admin-stat">
+                <div class="admin-stat-icon" style="background: #E9D5FF;">🔧</div>
+                <div class="admin-stat-value">342</div>
+                <div class="admin-stat-label">Prestataires</div>
+              </div>
+            </div>
+            <div class="admin-section">
+              <h4>Réservations récentes</h4>
+              <div class="admin-row">
+                <span><span class="status-dot status-green"></span>#BK-4821</span>
+                <span style="color: #6b7280; font-size: 12px;">Terminé</span>
+              </div>
+              <div class="admin-row">
+                <span><span class="status-dot status-yellow"></span>#BK-4822</span>
+                <span style="color: #6b7280; font-size: 12px;">En cours</span>
+              </div>
+              <div class="admin-row">
+                <span><span class="status-dot status-red"></span>#BK-4823</span>
+                <span style="color: #6b7280; font-size: 12px;">Annulé</span>
+              </div>
+            </div>
+            <div class="admin-section">
+              <h4>Prestataires en attente</h4>
+              <div class="admin-row">
+                <span>Paul Njoya</span>
+                <button style="background: #2E7D32; color: white; border: none; padding: 4px 10px; border-radius: 6px; font-size: 11px;">Vérifier</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="text-align: center; margin-top: 40px; color: #888; font-size: 13px;">
+    <p>Bolo-Man — Cameroon-Focused Daily Services Platform</p>
+    <p style="margin-top: 4px;">Built with NestJS + React Native + PostgreSQL</p>
+  </div>
+</body>
+</html>

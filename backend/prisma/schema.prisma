@@ -1,0 +1,506 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============ ENUMS ============
+
+enum Role {
+  CLIENT
+  PROVIDER
+  ADMIN
+  SUPPORT
+}
+
+enum BookingStatus {
+  REQUESTED
+  ACCEPTED
+  EN_ROUTE
+  ON_SITE
+  COMPLETED
+  CANCELLED
+}
+
+enum EscrowMilestone {
+  DEPOSIT
+  START
+  HALFWAY
+  COMPLETION
+}
+
+enum PaymentMethod {
+  MOMO
+  ORANGE
+  CARD
+  COD
+  WALLET
+  USSD
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum SubscriptionTier {
+  CLASSIC
+  GOLD
+  PREMIUM
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+  GRACE_PERIOD
+}
+
+enum PriceUnit {
+  HOURLY
+  DAILY
+  FLAT
+  PACKAGE
+}
+
+enum NotificationType {
+  PUSH
+  SMS
+  EMAIL
+}
+
+enum ContactAccessMethod {
+  SUBSCRIPTION
+  MICRO_PAYMENT
+}
+
+// ============ MODELS ============
+
+model User {
+  id            String   @id @default(uuid())
+  email         String?  @unique
+  phone         String   @unique
+  name          String
+  passwordHash  String?  @map("password_hash")
+  transactionPin String?  @map("transaction_pin") // 4-6 digit PIN for payments
+  biometricKey   String?  @map("biometric_key")   // Encrypted biometric token
+  role          Role     @default(CLIENT)
+  language      String   @default("fr")
+  currency      String   @default("XAF")
+  countryCode   String   @default("CM") @map("country_code")
+  avatar        String?
+  isVerified    Boolean  @default(false) @map("is_verified")
+  isActive      Boolean  @default(true) @map("is_active")
+  fcmToken      String?  @map("fcm_token")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  provider         Provider?
+  subscriptions    UserSubscription[]
+  bookingsAsClient Booking[]          @relation("ClientBookings")
+  bookingsAsProvider Booking[]        @relation("ProviderBookings")
+  payments         Payment[]
+  reviewsGiven     Review[]           @relation("ReviewsGiven")
+  reviewsReceived  Review[]           @relation("ReviewsReceived")
+  messagesSent     Message[]
+  contactAccesses  ContactAccess[]
+  wallet           Wallet?
+  notifications    Notification[]
+  auditLogs        AuditLog[]
+
+  @@index([countryCode])
+  @@index([role])
+  @@index([phone])
+  @@map("users")
+}
+
+model Provider {
+  id             String   @id @default(uuid())
+  userId         String   @unique @map("user_id")
+  businessName   String   @map("business_name")
+  description    String?
+  categories     String[] // Category IDs
+  serviceAreas   Json?    @map("service_areas") // Array of location/radius
+  pricing        Json?    // Default pricing info
+  availability   Json?    // Weekly schedule
+  rating         Float    @default(0)
+  reviewsCount   Int      @default(0) @map("reviews_count")
+  isVerified     Boolean  @default(false) @map("is_verified")
+  kycDocuments   Json?    @map("kyc_documents")
+  latitude       Float?
+  longitude      Float?
+  maxDistanceKm  Float    @default(10) @map("max_distance_km")
+  countryCode    String   @default("CM") @map("country_code")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  services       Service[]
+  contacts       Contact[]
+
+  @@index([countryCode])
+  @@index([isVerified])
+  @@index([rating])
+  @@map("providers")
+}
+
+model Category {
+  id          String   @id @default(uuid())
+  name        String
+  nameEn      String   @map("name_en")
+  nameFr      String   @map("name_fr")
+  icon        String?
+  description String?
+  isActive    Boolean  @default(true) @map("is_active")
+  sortOrder   Int      @default(0) @map("sort_order")
+  countryCode String   @default("CM") @map("country_code")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Relations
+  services    Service[]
+
+  @@index([countryCode])
+  @@map("categories")
+}
+
+model Service {
+  id            String   @id @default(uuid())
+  providerId    String   @map("provider_id")
+  categoryId    String   @map("category_id")
+  name          String
+  description   String?
+  basePrice     Int      @map("base_price") // In XAF (no decimals)
+  priceUnit     PriceUnit @default(FLAT) @map("price_unit")
+  maxDistanceKm Float?   @map("max_distance_km")
+  isActive      Boolean  @default(true) @map("is_active")
+  rating        Float    @default(0)
+  reviewsCount  Int      @default(0) @map("reviews_count")
+  countryCode   String   @default("CM") @map("country_code")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  provider      Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  category      Category @relation(fields: [categoryId], references: [id])
+  bookings      Booking[]
+
+  @@index([providerId])
+  @@index([categoryId])
+  @@index([countryCode])
+  @@map("services")
+}
+
+model Subscription {
+  id          String           @id @default(uuid())
+  name        String
+  tier        SubscriptionTier
+  price       Int              // In XAF
+  currency    String           @default("XAF")
+  features    Json             // Feature flags JSON
+  durationDays Int             @map("duration_days")
+  isActive    Boolean          @default(true) @map("is_active")
+  targetRole  Role             @default(CLIENT) @map("target_role")
+  countryCode String           @default("CM") @map("country_code")
+  createdAt   DateTime         @default(now()) @map("created_at")
+
+  // Relations
+  userSubscriptions UserSubscription[]
+
+  @@index([countryCode])
+  @@index([tier])
+  @@map("subscriptions")
+}
+
+model UserSubscription {
+  id              String             @id @default(uuid())
+  userId          String             @map("user_id")
+  subscriptionId  String             @map("subscription_id")
+  startedAt       DateTime           @default(now()) @map("started_at")
+  endsAt          DateTime           @map("ends_at")
+  status          SubscriptionStatus @default(ACTIVE)
+  autoRenew       Boolean            @default(true) @map("auto_renew")
+  paymentMethod   PaymentMethod?     @map("payment_method")
+  createdAt       DateTime           @default(now()) @map("created_at")
+  updatedAt       DateTime           @updatedAt @map("updated_at")
+
+  // Relations
+  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscription    Subscription       @relation(fields: [subscriptionId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+  @@index([endsAt])
+  @@map("user_subscriptions")
+}
+
+model Booking {
+  id              String        @id @default(uuid())
+  clientId        String        @map("client_id")
+  providerId      String        @map("provider_id")
+  serviceId       String        @map("service_id")
+  scheduledAt     DateTime      @map("scheduled_at")
+  durationMinutes Int?          @map("duration_minutes")
+  status          BookingStatus @default(REQUESTED)
+  price           Int           // In XAF
+  currency        String        @default("XAF")
+  paymentStatus   PaymentStatus @default(PENDING) @map("payment_status")
+  locationLat     Float?        @map("location_lat")
+  locationLng     Float?        @map("location_lng")
+  locationAddress String?       @map("location_address")
+  notes           String?
+  isRecurring     Boolean       @default(false) @map("is_recurring")
+  recurringRule   String?       @map("recurring_rule") // Cron pattern
+  cancelReason    String?       @map("cancel_reason")
+  requiresOtp     Boolean       @default(false) @map("requires_otp") // High-value booking flag
+  otpVerified     Boolean       @default(false) @map("otp_verified")
+  countryCode     String        @default("CM") @map("country_code")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  client          User          @relation("ClientBookings", fields: [clientId], references: [id])
+  provider        User          @relation("ProviderBookings", fields: [providerId], references: [id])
+  service         Service       @relation(fields: [serviceId], references: [id])
+  payments        Payment[]
+  conversation    Conversation?
+  reviews         Review[]
+  contactAccesses ContactAccess[]
+
+  @@index([clientId])
+  @@index([providerId])
+  @@index([status])
+  @@index([scheduledAt])
+  @@index([countryCode])
+  @@map("bookings")
+}
+
+model Payment {
+  id              String        @id @default(uuid())
+  userId          String        @map("user_id")
+  bookingId       String?       @map("booking_id")
+  amount          Int           // In XAF
+  currency        String        @default("XAF")
+  method          PaymentMethod
+  status          PaymentStatus @default(PENDING)
+  transactionRef  String?       @unique @map("transaction_ref")
+  gatewayResponse Json?         @map("gateway_response")
+  description     String?
+  paidAt          DateTime?     @map("paid_at")
+  otpVerified     Boolean       @default(false) @map("otp_verified") // SMS OTP confirmed
+  countryCode     String        @default("CM") @map("country_code")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  user            User          @relation(fields: [userId], references: [id])
+  booking         Booking?      @relation(fields: [bookingId], references: [id])
+
+  @@index([userId])
+  @@index([bookingId])
+  @@index([status])
+  @@index([transactionRef])
+  @@index([countryCode])
+  @@map("payments")
+}
+
+model Wallet {
+  id          String             @id @default(uuid())
+  userId      String             @unique @map("user_id")
+  balance     Int                @default(0) // In XAF
+  currency    String             @default("XAF")
+  isActive    Boolean            @default(true) @map("is_active")
+  createdAt   DateTime           @default(now()) @map("created_at")
+  updatedAt   DateTime           @updatedAt @map("updated_at")
+
+  // Relations
+  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions WalletTransaction[]
+
+  @@map("wallets")
+}
+
+model EscrowMilestone {
+  id          String   @id @default(uuid())
+  bookingId   String   @map("booking_id")
+  milestone   String   // DEPOSIT, START, HALFWAY, COMPLETION
+  percentage  Int      // 25, 50, 100
+  amount      Int      // XAF amount for this milestone
+  status      String   @default("PENDING") // PENDING, RELEASED, DISPUTED
+  releasedAt  DateTime? @map("released_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([bookingId])
+  @@map("escrow_milestones")
+}
+
+model WalletTransaction {
+  id          String   @id @default(uuid())
+  walletId    String   @map("wallet_id")
+  amount      Int      // Positive = credit, Negative = debit
+  type        String   // TOP_UP, ESCROW_HOLD, ESCROW_RELEASE, WITHDRAWAL, REFUND, COMMISSION
+  reference   String?  // Booking ID or payment ref
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Relations
+  wallet      Wallet   @relation(fields: [walletId], references: [id])
+
+  @@index([walletId])
+  @@index([type])
+  @@map("wallet_transactions")
+}
+
+model Contact {
+  id                String  @id @default(uuid())
+  providerId        String  @map("provider_id")
+  phone             String?
+  whatsapp          String?
+  address           String?
+  latitude          Float?
+  longitude         Float?
+  accessRequirement String  @default("GOLD") @map("access_requirement") // Min tier needed
+
+  // Relations
+  provider          Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@index([providerId])
+  @@map("contacts")
+}
+
+model ContactAccess {
+  id            String              @id @default(uuid())
+  clientId      String              @map("client_id")
+  providerId    String              @map("provider_id")
+  bookingId     String?             @map("booking_id")
+  accessMethod  ContactAccessMethod @map("access_method")
+  grantedAt     DateTime            @default(now()) @map("granted_at")
+  expiresAt     DateTime?           @map("expires_at") // For micro-payment access
+  countryCode   String              @default("CM") @map("country_code")
+
+  // Relations
+  client        User                @relation(fields: [clientId], references: [id])
+  booking       Booking?            @relation(fields: [bookingId], references: [id])
+
+  @@index([clientId])
+  @@index([providerId])
+  @@map("contact_accesses")
+}
+
+model Conversation {
+  id          String    @id @default(uuid())
+  bookingId   String    @unique @map("booking_id")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  booking     Booking   @relation(fields: [bookingId], references: [id])
+  messages    Message[]
+
+  @@map("conversations")
+}
+
+model Message {
+  id              String       @id @default(uuid())
+  conversationId  String       @map("conversation_id")
+  senderId        String       @map("sender_id")
+  content         String
+  isRead          Boolean      @default(false) @map("is_read")
+  createdAt       DateTime     @default(now()) @map("created_at")
+
+  // Relations
+  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender          User         @relation(fields: [senderId], references: [id])
+
+  @@index([conversationId])
+  @@index([senderId])
+  @@map("messages")
+}
+
+model Review {
+  id          String   @id @default(uuid())
+  bookingId   String   @map("booking_id")
+  reviewerId  String   @map("reviewer_id")
+  revieweeId  String   @map("reviewee_id")
+  rating      Int      // 1-5
+  comment     String?
+  response    String?  // Provider's response
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  booking     Booking  @relation(fields: [bookingId], references: [id])
+  reviewer    User     @relation("ReviewsGiven", fields: [reviewerId], references: [id])
+  reviewee    User     @relation("ReviewsReceived", fields: [revieweeId], references: [id])
+
+  @@index([revieweeId])
+  @@index([bookingId])
+  @@map("reviews")
+}
+
+model Location {
+  id          String  @id @default(uuid())
+  countryCode String  @map("country_code")
+  countryName String  @map("country_name")
+  city        String
+  region      String?
+  latitude    Float?
+  longitude   Float?
+  isActive    Boolean @default(true) @map("is_active")
+
+  @@index([countryCode])
+  @@map("locations")
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String           @map("user_id")
+  type      NotificationType
+  title     String
+  body      String
+  data      Json?
+  isRead    Boolean          @default(false) @map("is_read")
+  sentAt    DateTime         @default(now()) @map("sent_at")
+
+  // Relations
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isRead])
+  @@map("notifications")
+}
+
+model AdminSetting {
+  id    String @id @default(uuid())
+  key   String @unique
+  value Json
+  description String?
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("admin_settings")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?  @map("user_id")
+  action    String
+  entity    String
+  entityId  String?  @map("entity_id")
+  details   Json?
+  ipAddress String?  @map("ip_address")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user      User?    @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
