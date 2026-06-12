@@ -5,7 +5,7 @@
     "dockerfilePath": "Dockerfile"
   },
   "deploy": {
-    "startCommand": "npx prisma db push --skip-generate --accept-data-loss; echo '===DBPUSH_DONE==='; echo '---dist listing---'; ls -la dist || echo 'NO_DIST'; echo '===STARTING_NODE==='; node dist/main; echo \"===NODE_EXITED code=$?===\"",
+    "startCommand": "npx prisma db push --skip-generate --accept-data-loss && node dist/main",
     "healthcheckPath": "/health",
     "healthcheckTimeout": 300,
     "restartPolicyType": "ON_FAILURE",

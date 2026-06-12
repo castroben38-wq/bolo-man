@@ -13,7 +13,7 @@ COPY . .
 
 RUN npx prisma generate
 RUN npm run build
-RUN echo "=== DIST TREE ===" && ls -la dist && echo "=== main.js check ===" && (ls -la dist/main.js && echo "MAIN_JS_OK") || (echo "MAIN_JS_MISSING; searching:" && find dist -name "main.js")
+RUN ls -la dist/main.js && echo "MAIN_JS_OK"
 
 FROM node:20-alpine AS production
 
